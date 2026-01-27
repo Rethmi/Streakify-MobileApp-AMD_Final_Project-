@@ -1,3 +1,360 @@
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   Alert,
+//   ActivityIndicator,
+//   KeyboardAvoidingView,
+//   Platform,
+//   Image,
+//   Switch,
+//   Modal,
+// } from "react-native";
+// import React, { useState } from "react";
+// import { useRouter } from "expo-router";
+// import { LinearGradient } from "expo-linear-gradient";
+// import { Feather } from "@expo/vector-icons";
+// import Animated, {
+//   useSharedValue,
+//   useAnimatedStyle,
+//   withTiming,
+// } from "react-native-reanimated";
+
+// import { auth } from "@/service/firebaseConfig";
+// import {
+//   createUserWithEmailAndPassword,
+//   signInWithEmailAndPassword,
+//   sendPasswordResetEmail,
+// } from "firebase/auth";
+
+// const AuthScreen = () => {
+//   const router = useRouter();
+//   const [isLogin, setIsLogin] = useState(true);
+//   const [email, setEmail] = useState<string>("");
+//   const [password, setPassword] = useState<string>("");
+//   const [cPassword, setCPassword] = useState<string>("");
+//   const [isLoading, setIsLoading] = useState<boolean>(false);
+//   const [showPassword, setShowPassword] = useState<boolean>(false);
+//   const [rememberMe, setRememberMe] = useState<boolean>(false);
+
+//   const [resetModalVisible, setResetModalVisible] = useState<boolean>(false);
+//   const [resetEmail, setResetEmail] = useState<string>("");
+//   const [isResetLoading, setIsResetLoading] = useState<boolean>(false);
+
+//   const inputScale = useSharedValue(1);
+//   const buttonScale = useSharedValue(1);
+
+//   const animatedInputStyle = useAnimatedStyle(() => ({
+//     transform: [{ scale: inputScale.value }],
+//   }));
+
+//   const animatedButtonStyle = useAnimatedStyle(() => ({
+//     transform: [{ scale: buttonScale.value }],
+//   }));
+
+//   const handleInputFocus = () => {
+//     inputScale.value = withTiming(1.02, { duration: 200 });
+//   };
+
+//   const handleInputBlur = () => {
+//     inputScale.value = withTiming(1, { duration: 200 });
+//   };
+
+//   const handleButtonPressIn = () => {
+//     buttonScale.value = withTiming(0.95, { duration: 100 });
+//   };
+
+//   const handleButtonPressOut = () => {
+//     buttonScale.value = withTiming(1, { duration: 100 });
+//   };
+
+//   const handleAuth = async () => {
+//     if (!email || !password) {
+//       Alert.alert("Error", "Please fill in all fields");
+//       return;
+//     }
+
+//     if (!isLogin && password !== cPassword) {
+//       Alert.alert("Error", "Passwords do not match");
+//       return;
+//     }
+
+//     if (isLoading) return;
+//     setIsLoading(true);
+
+//     try {
+//       if (isLogin) {
+//         await signInWithEmailAndPassword(auth, email, password);
+//         Alert.alert("Success", "Logged in successfully!");
+// router.replace("/(tabs)/profile");
+//       } else {
+//         await createUserWithEmailAndPassword(auth, email, password);
+//         Alert.alert("Success", "Registration successful! Please log in.");
+//         setIsLogin(true);
+//       }
+//     } catch (err: any) {
+//       console.error(err);
+//       let message = "Something went wrong. Please try again.";
+
+//       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+//         message = "Invalid credentials. Please check your email and password.";
+//       } else if (err.code === "auth/email-already-in-use") {
+//         message = "This email is already in use. Please log in instead.";
+//       } else if (err.code === "auth/weak-password") {
+//         message = "Password should be at least 6 characters long.";
+//       } else if (err.code === "auth/invalid-email") {
+//         message = "Please enter a valid email address.";
+//       }
+
+//       Alert.alert("Failed", message);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const handlePasswordReset = async () => {
+//     if (!resetEmail) {
+//       Alert.alert("Error", "Please enter your email address.");
+//       return;
+//     }
+//     setIsResetLoading(true);
+//     try {
+//       await sendPasswordResetEmail(auth, resetEmail);
+//       Alert.alert(
+//         "Success",
+//         "Password reset email sent. Please check your inbox (and spam)."
+//       );
+//       setResetModalVisible(false);
+//       setResetEmail("");
+//     } catch (err: any) {
+//       console.error(err);
+//       let message = "Something went wrong. Please try again.";
+
+//       if (err.code === "auth/user-not-found") {
+//         message = "No user found with this email address.";
+//       } else if (err.code === "auth/invalid-email") {
+//         message = "Please enter a valid email address.";
+//       } else if (err.code === "auth/too-many-requests") {
+//         message = "Too many requests. Try again later.";
+//       }
+//       Alert.alert("Failed", message);
+//     } finally {
+//       setIsResetLoading(false);
+//     }
+//   };
+
+//   return (
+//     <KeyboardAvoidingView
+//       behavior={Platform.OS === "ios" ? "padding" : "height"}
+//       className="flex-1"
+//     >
+//       <LinearGradient
+//         colors={["#1A1A1A", "#1A1A1A"]}
+//         className="flex-1 justify-center px-6"
+//       >
+//         <View className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full mx-auto h-full justify-center gap-3">
+//           <Text className="text-2xl font-bold text-center text-black mb-20">
+//             Go ahead and set up your account
+//           </Text>
+//           <Text className="text-center text-gray-600 mb-6">
+//             Sign in/up to enjoy the best managing experience
+//           </Text>
+
+//           <View className="flex-row justify-around mb-6">
+//             <TouchableOpacity
+//               onPress={() => setIsLogin(true)}
+//               className={`flex-1 p-2 rounded-l-lg ${
+//                 isLogin ? "bg-gray-200" : "bg-gray-100"
+//               }`}
+//             >
+//               <Text className="text-center text-gray-800 font-medium">Login</Text>
+//             </TouchableOpacity>
+//             <TouchableOpacity
+//               onPress={() => setIsLogin(false)}
+//               className={`flex-1 p-2 rounded-r-lg ${
+//                 !isLogin ? "bg-gray-200" : "bg-gray-100"
+//               }`}
+//             >
+//               <Text className="text-center text-gray-800 font-medium">Register</Text>
+//             </TouchableOpacity>
+//           </View>
+
+//           <Animated.View style={animatedInputStyle} className="mb-4">
+//             <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
+//               <Feather name="mail" size={20} color="#6B7280" />
+//               <TextInput
+//                 placeholder="Email Address"
+//                 value={email}
+//                 onChangeText={setEmail}
+//                 keyboardType="email-address"
+//                 autoCapitalize="none"
+//                 className="flex-1 ml-2 text-gray-800"
+//                 placeholderTextColor="#9CA3AF"
+//                 onFocus={handleInputFocus}
+//                 onBlur={handleInputBlur}
+//               />
+//             </View>
+//           </Animated.View>
+
+//           <Animated.View style={animatedInputStyle} className="mb-4">
+//             <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
+//               <Feather name="lock" size={20} color="#6B7280" />
+//               <TextInput
+//                 placeholder="Password"
+//                 value={password}
+//                 onChangeText={setPassword}
+//                 secureTextEntry={!showPassword}
+//                 className="flex-1 ml-2 text-gray-800"
+//                 placeholderTextColor="#9CA3AF"
+//                 onFocus={handleInputFocus}
+//                 onBlur={handleInputBlur}
+//               />
+//               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+//                 <Feather
+//                   name={showPassword ? "eye" : "eye-off"}
+//                   size={20}
+//                   color="#6B7280"
+//                 />
+//               </TouchableOpacity>
+//             </View>
+//           </Animated.View>
+
+//           {!isLogin && (
+//             <Animated.View style={animatedInputStyle} className="mb-4">
+//               <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
+//                 <Feather name="lock" size={20} color="#6B7280" />
+//                 <TextInput
+//                   placeholder="Confirm Password"
+//                   value={cPassword}
+//                   onChangeText={setCPassword}
+//                   secureTextEntry={!showPassword}
+//                   className="flex-1 ml-2 text-gray-800"
+//                   placeholderTextColor="#9CA3AF"
+//                   onFocus={handleInputFocus}
+//                   onBlur={handleInputBlur}
+//                 />
+//               </View>
+//             </Animated.View>
+//           )}
+
+//           <View className="flex-row justify-between mb-4">
+//             <View className="flex-row items-center">
+//               <Switch
+//                 value={rememberMe}
+//                 onValueChange={setRememberMe}
+//                 trackColor={{ false: "#D1D5DB", true: "#6B7280" }}
+//                 thumbColor={rememberMe ? "#FFF" : "#FFF"}
+//               />
+//               <Text className="ml-2 text-gray-800">Remember me</Text>
+//             </View>
+//             <TouchableOpacity onPress={() => setResetModalVisible(true)}>
+//               <Text className="text-blue-600">Forgot Password?</Text>
+//             </TouchableOpacity>
+//           </View>
+
+//           <Animated.View style={animatedButtonStyle}>
+//             <TouchableOpacity
+//               onPress={handleAuth}
+//               onPressIn={handleButtonPressIn}
+//               onPressOut={handleButtonPressOut}
+//               disabled={isLoading}
+//               className={`rounded-lg p-3 ${
+//                 isLoading ? "bg-gray-400" : "bg-[#6B7280]"
+//               }`}
+//             >
+//               {isLoading ? (
+//                 <ActivityIndicator color="#fff" size="small" />
+//               ) : (
+//                 <Text className="text-center text-white font-semibold text-lg">
+//                   {isLogin ? "Login" : "Register"}
+//                 </Text>
+//               )}
+//             </TouchableOpacity>
+//           </Animated.View>
+
+//           <View className="mt-6">
+//             <Text className="text-center text-gray-600 mb-4">Or login with</Text>
+//             <View className="flex-row justify-around">
+//               <TouchableOpacity
+//                 onPress={() => Alert.alert("Google Login", "Feature not implemented yet.")}
+//                 className="p-2 bg-white rounded-full shadow"
+//               >
+//                 <Image source={{ uri: "https://www.google.com/favicon.ico" }} className="w-8 h-8" />
+//               </TouchableOpacity>
+//               <TouchableOpacity
+//                 onPress={() => Alert.alert("Facebook Login", "Feature not implemented yet.")}
+//                 className="p-2 bg-white rounded-full shadow"
+//               >
+//                 <Image source={{ uri: "https://facebook.com/favicon.ico" }} className="w-8 h-8" />
+//               </TouchableOpacity>
+//             </View>
+//           </View>
+//         </View>
+
+//         <Modal
+//           visible={resetModalVisible}
+//           transparent
+//           animationType="fade"
+//           onRequestClose={() => setResetModalVisible(false)}
+//         >
+//           <KeyboardAvoidingView
+//             behavior={Platform.OS === "ios" ? "padding" : "height"}
+//             className="flex-1 justify-center items-center px-6"
+//           >
+//             <View className="w-full max-w-md bg-white rounded-xl p-6 shadow-lg">
+//               <Text className="text-xl font-semibold mb-3">Reset Password</Text>
+//               <Text className="text-gray-600 mb-4">
+//                 Enter your email and we'll send a password reset link.
+//               </Text>
+
+//               <View className="mb-4">
+//                 <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
+//                   <Feather name="mail" size={20} color="#6B7280" />
+//                   <TextInput
+//                     placeholder="Email Address"
+//                     value={resetEmail}
+//                     onChangeText={setResetEmail}
+//                     keyboardType="email-address"
+//                     autoCapitalize="none"
+//                     className="flex-1 ml-2 text-gray-800"
+//                     placeholderTextColor="#9CA3AF"
+//                   />
+//                 </View>
+//               </View>
+
+//               <View className="flex-row justify-between">
+//                 <TouchableOpacity
+//                   onPress={() => {
+//                     setResetModalVisible(false);
+//                     setResetEmail("");
+//                   }}
+//                   className="px-4 py-2 rounded-lg bg-gray-200"
+//                 >
+//                   <Text>Cancel</Text>
+//                 </TouchableOpacity>
+
+//                 <TouchableOpacity
+//                   onPress={handlePasswordReset}
+//                   disabled={isResetLoading}
+//                   className="px-4 py-2 rounded-lg bg-[#6B7280]"
+//                 >
+//                   {isResetLoading ? (
+//                     <ActivityIndicator color="#fff" />
+//                   ) : (
+//                     <Text className="text-white">Send Reset Email</Text>
+//                   )}
+//                 </TouchableOpacity>
+//               </View>
+//             </View>
+//           </KeyboardAvoidingView>
+//         </Modal>
+//       </LinearGradient>
+//     </KeyboardAvoidingView>
+//   );
+// };
+
+// export default AuthScreen;
 import {
   View,
   Text,
@@ -10,6 +367,7 @@ import {
   Image,
   Switch,
   Modal,
+  ScrollView,
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
@@ -54,7 +412,7 @@ const AuthScreen = () => {
   }));
 
   const handleInputFocus = () => {
-    inputScale.value = withTiming(1.02, { duration: 200 });
+    inputScale.value = withTiming(1.01, { duration: 200 });
   };
 
   const handleInputBlur = () => {
@@ -62,7 +420,7 @@ const AuthScreen = () => {
   };
 
   const handleButtonPressIn = () => {
-    buttonScale.value = withTiming(0.95, { duration: 100 });
+    buttonScale.value = withTiming(0.96, { duration: 100 });
   };
 
   const handleButtonPressOut = () => {
@@ -74,20 +432,17 @@ const AuthScreen = () => {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
-
     if (!isLogin && password !== cPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
-
     if (isLoading) return;
     setIsLoading(true);
-
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         Alert.alert("Success", "Logged in successfully!");
-       // router.push("/(tabs)");
+        router.push("/(tabs)")
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
         Alert.alert("Success", "Registration successful! Please log in.");
@@ -96,7 +451,6 @@ const AuthScreen = () => {
     } catch (err: any) {
       console.error(err);
       let message = "Something went wrong. Please try again.";
-
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
         message = "Invalid credentials. Please check your email and password.";
       } else if (err.code === "auth/email-already-in-use") {
@@ -106,7 +460,6 @@ const AuthScreen = () => {
       } else if (err.code === "auth/invalid-email") {
         message = "Please enter a valid email address.";
       }
-
       Alert.alert("Failed", message);
     } finally {
       setIsLoading(false);
@@ -121,23 +474,13 @@ const AuthScreen = () => {
     setIsResetLoading(true);
     try {
       await sendPasswordResetEmail(auth, resetEmail);
-      Alert.alert(
-        "Success",
-        "Password reset email sent. Please check your inbox (and spam)."
-      );
+      Alert.alert("Success", "Password reset email sent. Please check your inbox.");
       setResetModalVisible(false);
       setResetEmail("");
     } catch (err: any) {
-      console.error(err);
       let message = "Something went wrong. Please try again.";
-
-      if (err.code === "auth/user-not-found") {
-        message = "No user found with this email address.";
-      } else if (err.code === "auth/invalid-email") {
-        message = "Please enter a valid email address.";
-      } else if (err.code === "auth/too-many-requests") {
-        message = "Too many requests. Try again later.";
-      }
+      if (err.code === "auth/user-not-found") message = "No user found with this email.";
+      else if (err.code === "auth/invalid-email") message = "Invalid email address.";
       Alert.alert("Failed", message);
     } finally {
       setIsResetLoading(false);
@@ -147,209 +490,198 @@ const AuthScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1"
+      className="flex-1 bg-[#0F0F0F]"
     >
-      <LinearGradient
-        colors={["#1A1A1A", "#1A1A1A"]}
-        className="flex-1 justify-center px-6"
-      >
-        <View className="bg-white rounded-xl p-6 shadow-lg max-w-md w-full mx-auto h-full justify-center gap-3">
-          <Text className="text-2xl font-bold text-center text-black mb-20">
-            Go ahead and set up your account
-          </Text>
-          <Text className="text-center text-gray-600 mb-6">
-            Sign in/up to enjoy the best managing experience
-          </Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View className="flex-1 justify-center px-6 py-10">
+          
+          {/* Header Section */}
+          <View className="items-center mb-10">
+            <View className="w-20 h-20 bg-[#252525] rounded-3xl items-center justify-center mb-4 border border-[#333]">
+              <Feather name="shield" size={40} color="#007AFF" />
+            </View>
+            <Text className="text-3xl font-bold text-white text-center">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </Text>
+            <Text className="text-gray-400 text-center mt-2">
+              {isLogin ? "Sign in to continue managing" : "Join us for the best experience"}
+            </Text>
+          </View>
 
-          <View className="flex-row justify-around mb-6">
+          {/* Toggle Tab */}
+          <View className="flex-row bg-[#1E1E1E] p-1.5 rounded-2xl mb-8">
             <TouchableOpacity
               onPress={() => setIsLogin(true)}
-              className={`flex-1 p-2 rounded-l-lg ${
-                isLogin ? "bg-gray-200" : "bg-gray-100"
-              }`}
+              className={`flex-1 py-3 rounded-xl ${isLogin ? "bg-[#333333]" : ""}`}
             >
-              <Text className="text-center text-gray-800 font-medium">Login</Text>
+              <Text className={`text-center font-semibold ${isLogin ? "text-white" : "text-gray-500"}`}>Login</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setIsLogin(false)}
-              className={`flex-1 p-2 rounded-r-lg ${
-                !isLogin ? "bg-gray-200" : "bg-gray-100"
-              }`}
+              className={`flex-1 py-3 rounded-xl ${!isLogin ? "bg-[#333333]" : ""}`}
             >
-              <Text className="text-center text-gray-800 font-medium">Register</Text>
+              <Text className={`text-center font-semibold ${!isLogin ? "text-white" : "text-gray-500"}`}>Register</Text>
             </TouchableOpacity>
           </View>
 
-          <Animated.View style={animatedInputStyle} className="mb-4">
-            <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
-              <Feather name="mail" size={20} color="#6B7280" />
-              <TextInput
-                placeholder="Email Address"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                className="flex-1 ml-2 text-gray-800"
-                placeholderTextColor="#9CA3AF"
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-              />
-            </View>
-          </Animated.View>
-
-          <Animated.View style={animatedInputStyle} className="mb-4">
-            <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
-              <Feather name="lock" size={20} color="#6B7280" />
-              <TextInput
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                className="flex-1 ml-2 text-gray-800"
-                placeholderTextColor="#9CA3AF"
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Feather
-                  name={showPassword ? "eye" : "eye-off"}
-                  size={20}
-                  color="#6B7280"
-                />
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-
-          {!isLogin && (
-            <Animated.View style={animatedInputStyle} className="mb-4">
-              <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
-                <Feather name="lock" size={20} color="#6B7280" />
+          {/* Form Fields */}
+          <View className="gap-y-4">
+            <Animated.View style={animatedInputStyle}>
+              <View className="flex-row items-center bg-[#1E1E1E] rounded-2xl px-4 py-4 border border-[#2A2A2A]">
+                <Feather name="mail" size={20} color="#6B7280" />
                 <TextInput
-                  placeholder="Confirm Password"
-                  value={cPassword}
-                  onChangeText={setCPassword}
-                  secureTextEntry={!showPassword}
-                  className="flex-1 ml-2 text-gray-800"
-                  placeholderTextColor="#9CA3AF"
+                  placeholder="Email Address"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  className="flex-1 ml-3 text-white"
+                  placeholderTextColor="#666"
                   onFocus={handleInputFocus}
                   onBlur={handleInputBlur}
                 />
               </View>
             </Animated.View>
-          )}
 
-          <View className="flex-row justify-between mb-4">
+            <Animated.View style={animatedInputStyle}>
+              <View className="flex-row items-center bg-[#1E1E1E] rounded-2xl px-4 py-4 border border-[#2A2A2A]">
+                <Feather name="lock" size={20} color="#6B7280" />
+                <TextInput
+                  placeholder="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  className="flex-1 ml-3 text-white"
+                  placeholderTextColor="#666"
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+
+            {!isLogin && (
+              <Animated.View style={animatedInputStyle}>
+                <View className="flex-row items-center bg-[#1E1E1E] rounded-2xl px-4 py-4 border border-[#2A2A2A]">
+                  <Feather name="lock" size={20} color="#6B7280" />
+                  <TextInput
+                    placeholder="Confirm Password"
+                    value={cPassword}
+                    onChangeText={setCPassword}
+                    secureTextEntry={!showPassword}
+                    className="flex-1 ml-3 text-white"
+                    placeholderTextColor="#666"
+                    onFocus={handleInputFocus}
+                    onBlur={handleInputBlur}
+                  />
+                </View>
+              </Animated.View>
+            )}
+          </View>
+
+          {/* Remember Me & Forgot Password */}
+          <View className="flex-row justify-between items-center mt-5 mb-8">
             <View className="flex-row items-center">
               <Switch
                 value={rememberMe}
                 onValueChange={setRememberMe}
-                trackColor={{ false: "#D1D5DB", true: "#6B7280" }}
-                thumbColor={rememberMe ? "#FFF" : "#FFF"}
+                trackColor={{ false: "#333", true: "#007AFF" }}
+                thumbColor="#FFF"
               />
-              <Text className="ml-2 text-gray-800">Remember me</Text>
+              <Text className="ml-2 text-gray-400">Remember</Text>
             </View>
             <TouchableOpacity onPress={() => setResetModalVisible(true)}>
-              <Text className="text-blue-600">Forgot Password?</Text>
+              <Text className="text-[#007AFF] font-medium">Forgot Password?</Text>
             </TouchableOpacity>
           </View>
 
+          {/* Action Button */}
           <Animated.View style={animatedButtonStyle}>
             <TouchableOpacity
               onPress={handleAuth}
               onPressIn={handleButtonPressIn}
               onPressOut={handleButtonPressOut}
               disabled={isLoading}
-              className={`rounded-lg p-3 ${
-                isLoading ? "bg-gray-400" : "bg-[#6B7280]"
+              className={`rounded-2xl py-4 flex-row justify-center items-center ${
+                isLoading ? "bg-gray-700" : "bg-[#007AFF]"
               }`}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Text className="text-center text-white font-semibold text-lg">
-                  {isLogin ? "Login" : "Register"}
+                <Text className="text-white font-bold text-lg">
+                  {isLogin ? "Sign In" : "Get Started"}
                 </Text>
               )}
             </TouchableOpacity>
           </Animated.View>
 
-          <View className="mt-6">
-            <Text className="text-center text-gray-600 mb-4">Or login with</Text>
-            <View className="flex-row justify-around">
+          {/* Social Login */}
+          <View className="mt-10">
+            <View className="flex-row items-center mb-6">
+              <View className="flex-1 h-[1px] bg-[#2A2A2A]" />
+              <Text className="mx-4 text-gray-500">Or continue with</Text>
+              <View className="flex-1 h-[1px] bg-[#2A2A2A]" />
+            </View>
+            
+            <View className="flex-row justify-center gap-x-6">
               <TouchableOpacity
-                onPress={() => Alert.alert("Google Login", "Feature not implemented yet.")}
-                className="p-2 bg-white rounded-full shadow"
+                onPress={() => Alert.alert("Google", "Coming soon")}
+                className="w-14 h-14 bg-[#1E1E1E] rounded-full items-center justify-center border border-[#2A2A2A]"
               >
-                <Image source={{ uri: "https://www.google.com/favicon.ico" }} className="w-8 h-8" />
+                <Image source={{ uri: "https://www.google.com/favicon.ico" }} className="w-6 h-6" />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => Alert.alert("Facebook Login", "Feature not implemented yet.")}
-                className="p-2 bg-white rounded-full shadow"
+                onPress={() => Alert.alert("Facebook", "Coming soon")}
+                className="w-14 h-14 bg-[#1E1E1E] rounded-full items-center justify-center border border-[#2A2A2A]"
               >
-                <Image source={{ uri: "https://facebook.com/favicon.ico" }} className="w-8 h-8" />
+                <Image source={{ uri: "https://facebook.com/favicon.ico" }} className="w-6 h-6" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+        </View>
+      </ScrollView>
+
+      {/* Forgot Password Modal */}
+      <Modal visible={resetModalVisible} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/60">
+          <View className="bg-[#1A1A1A] rounded-t-[30px] p-8">
+            <Text className="text-2xl font-bold text-white mb-2">Reset Password</Text>
+            <Text className="text-gray-400 mb-6">We'll send a link to your email to reset your password.</Text>
+            
+            <View className="flex-row items-center bg-[#252525] rounded-2xl px-4 py-4 mb-6">
+              <Feather name="mail" size={20} color="#6B7280" />
+              <TextInput
+                placeholder="Email Address"
+                value={resetEmail}
+                onChangeText={setResetEmail}
+                keyboardType="email-address"
+                className="flex-1 ml-3 text-white"
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            <View className="flex-row gap-x-4">
+              <TouchableOpacity
+                onPress={() => setResetModalVisible(false)}
+                className="flex-1 py-4 rounded-2xl bg-[#333]"
+              >
+                <Text className="text-center text-white font-semibold">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handlePasswordReset}
+                disabled={isResetLoading}
+                className="flex-2 py-4 rounded-2xl bg-[#007AFF] px-8"
+              >
+                {isResetLoading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-semibold">Send Link</Text>}
               </TouchableOpacity>
             </View>
           </View>
         </View>
-
-        <Modal
-          visible={resetModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setResetModalVisible(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="flex-1 justify-center items-center px-6"
-          >
-            <View className="w-full max-w-md bg-white rounded-xl p-6 shadow-lg">
-              <Text className="text-xl font-semibold mb-3">Reset Password</Text>
-              <Text className="text-gray-600 mb-4">
-                Enter your email and we'll send a password reset link.
-              </Text>
-
-              <View className="mb-4">
-                <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3">
-                  <Feather name="mail" size={20} color="#6B7280" />
-                  <TextInput
-                    placeholder="Email Address"
-                    value={resetEmail}
-                    onChangeText={setResetEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    className="flex-1 ml-2 text-gray-800"
-                    placeholderTextColor="#9CA3AF"
-                  />
-                </View>
-              </View>
-
-              <View className="flex-row justify-between">
-                <TouchableOpacity
-                  onPress={() => {
-                    setResetModalVisible(false);
-                    setResetEmail("");
-                  }}
-                  className="px-4 py-2 rounded-lg bg-gray-200"
-                >
-                  <Text>Cancel</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handlePasswordReset}
-                  disabled={isResetLoading}
-                  className="px-4 py-2 rounded-lg bg-[#6B7280]"
-                >
-                  {isResetLoading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text className="text-white">Send Reset Email</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        </Modal>
-      </LinearGradient>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };

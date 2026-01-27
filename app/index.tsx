@@ -57,7 +57,7 @@ const Index = () => {
   useEffect(() => {
     if (!loading) {
       if (user) {
-      //  router.push("/(tabs)")
+        router.push("/(tabs)")
       } else {
         router.push("/(auth)/authScreen")
       }
