@@ -190,7 +190,9 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      
+     
+ 
+
       {habits.length > todaysHabits.length && (
         <View style={styles.allHabitsSection}>
           <Text style={styles.sectionTitle}>📅 All Your Habits</Text>
