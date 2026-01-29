@@ -867,27 +867,79 @@ export default function ProfileScreen() {
     return { completedToday, currentStreak, completionRate, totalCompletions, activeCount: habits.length };
   }, [habits]);
 
-  const handleProfilePicture = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  // const handleProfilePicture = async () => {
+  //   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //   if (status !== 'granted') {
+  //     Alert.alert('Permission Needed', 'Please allow gallery access.');
+  //     return;
+  //   }
+  //   const result = await ImagePicker.launchImageLibraryAsync({
+  //     allowsEditing: true,
+  //     aspect: [1, 1],
+  //     quality: 0.5,
+  //   });
+  //   if (!result.canceled) setProfileImage(result.assets[0].uri);
+  // };
+
+  // if (loading && habits.length === 0) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <ActivityIndicator size="large" color="#3B82F6" />
+  //     </View>
+  //   );
+  // }
+  // --- Profile Picture Update Logic ---
+  const handleProfilePicture = () => {
+    Alert.alert(
+      'Profile Picture',
+      'Change your profile picture',
+      [
+        { text: 'Take Photo', onPress: openCamera },
+        { text: 'Choose from Gallery', onPress: openGallery },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  // Camera eka open kireema
+  const openCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
     if (status !== 'granted') {
-      Alert.alert('Permission Needed', 'Please allow gallery access.');
+      Alert.alert('Permission Needed', 'We need camera access to take a photo.');
       return;
     }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
+
+  // Gallery eka open kireema
+  const openGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Needed', 'We need gallery access to pick a photo.');
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
     });
-    if (!result.canceled) setProfileImage(result.assets[0].uri);
-  };
 
-  if (loading && habits.length === 0) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-      </View>
-    );
-  }
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
 
   return (
     <View style={styles.container}>
