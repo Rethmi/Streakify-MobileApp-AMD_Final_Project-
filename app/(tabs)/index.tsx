@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { HabitService } from '@/service/habitService';
+import HabitCard from '@/components/HabitCard';
 import { Habit } from '@/types/habit';
 import { TrendingUp, Target, Flame, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -189,6 +190,61 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+<View style={styles.habitsSection}>
+        <Text style={styles.sectionTitle}>
+          🎯 Today's Habits ({completedCount}/{todaysHabits.length})
+        </Text>
+        {todaysHabits.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>🎯</Text>
+            <Text style={styles.emptyTitle}>No habits for today</Text>
+            <Text style={styles.emptySubtitle}>
+              {habits.length === 0
+                ? 'Start building healthy habits by adding your first one!'
+                : 'All your habits are scheduled for other days. Great job staying organized!'}
+            </Text>
+            <TouchableOpacity
+              style={styles.emptyButton}
+             // onPress={() => router.push('/(tabs)/add')}
+            >
+              <Plus size={20} color="#FFFFFF" />
+              <Text style={styles.emptyButtonText}>
+                {habits.length === 0 ? 'Add Your First Habit' : 'Add Another Habit'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={todaysHabits}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <HabitCard
+                 
+              />
+            )}
+            scrollEnabled={false}
+            contentContainerStyle={styles.habitsList}
+          />
+        )}
+      </View>
+
+      {habits.length > todaysHabits.length && (
+        <View style={styles.allHabitsSection}>
+          <Text style={styles.sectionTitle}>📅 All Your Habits</Text>
+          <FlatList
+            data={habits}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <HabitCard
+               
+              />
+            )}
+            scrollEnabled={false}
+            contentContainerStyle={styles.habitsList}
+          />
+        </View>
+      )}
 
      
  
