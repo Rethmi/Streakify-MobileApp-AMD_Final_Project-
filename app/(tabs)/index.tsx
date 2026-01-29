@@ -206,7 +206,7 @@ export default function HomeScreen() {
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
-             // onPress={() => router.push('/(tabs)/add')}
+              onPress={() => router.push('/(tabs)/add')}
             >
               <Plus size={20} color="#FFFFFF" />
               <Text style={styles.emptyButtonText}>
@@ -220,7 +220,11 @@ export default function HomeScreen() {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <HabitCard
-                 
+                habit={item}
+                onToggle={(completed) => handleToggleHabit(item.id, completed)}
+                onDelete={() => handleDeleteHabit(item.id)}
+                onEdit={() => handleEditHabit(item)}
+                isCompleted={item.completions[today] || false}
               />
             )}
             scrollEnabled={false}
@@ -237,7 +241,12 @@ export default function HomeScreen() {
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <HabitCard
-               
+                habit={item}
+                onToggle={(completed) => handleToggleHabit(item.id, completed)}
+                onDelete={() => handleDeleteHabit(item.id)}
+                onEdit={() => handleEditHabit(item)}
+                isCompleted={item.completions[today] || false}
+                showFrequency={true}
               />
             )}
             scrollEnabled={false}
