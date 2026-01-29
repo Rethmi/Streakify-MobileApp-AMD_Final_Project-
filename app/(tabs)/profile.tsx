@@ -759,6 +759,11 @@
 //   versionLabel: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
 //   footerNote: { color: '#CBD5E1', fontSize: 11, marginTop: 4 }
 // });
+ 
+
+
+
+
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
@@ -771,13 +776,15 @@ import {
   StatusBar,
   Platform,
   Dimensions,
-  Image, // Image පෙන්වීමට එකතු කළා
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { HabitService } from '@/service/habitService';
 import { Habit } from '@/types/habit';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker'; // Camera access සඳහා
+import * as ImagePicker from 'expo-image-picker';
+import { router } from 'expo-router';
 import { 
   User, 
   LogOut, 
@@ -793,7 +800,8 @@ import {
   Star,
   ChevronRight,
   Zap,
-  Camera // Camera icon එක සඳහා
+  Camera,
+  Heart
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -803,7 +811,7 @@ export default function ProfileScreen() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [profileImage, setProfileImage] = useState<string | null>(null); // Profile image state
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // --- Real-time Subscription ---
   useEffect(() => {
@@ -815,65 +823,38 @@ export default function ProfileScreen() {
     return () => unsubscribe(); 
   }, [user]);
 
-  // --- Camera & Gallery Access Logic ---
-  const handleProfilePicture = () => {
+  // --- Logout Logic   ---
+ 
+  const handleLogout = () => {
     Alert.alert(
-      "Profile Picture",
-      "Choose an option to update your profile photo",
+      'Sign Out', 
+      'Are you sure you want to exit your account?', 
       [
-        {
-          text: "Take Photo",
-          onPress: takePhoto,
-        },
-        {
-          text: "Choose from Gallery",
-          onPress: pickImage,
-        },
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await logout(); // context  logout call  
+              
+              // Redirect manual handle  
+              router.replace('/(auth)/authScreen'); 
+              
+            } catch (error) {
+              console.error("Logout Error:", error);
+              Alert.alert("Error", "Could not sign out. Please check your connection.");
+            } finally {
+              setLoading(false);
+            }
+          } 
+        }
       ]
     );
   };
 
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Sorry, we need camera permissions to make this work!');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
-  };
-
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Sorry, we need gallery permissions to make this work!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-
-    if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
-    }
-  };
-
-  // --- Calculated Live Data ---
+  // --- Stats Calculation ---
   const liveStats = useMemo(() => {
     const today = HabitService.getTodayString();
     const todaysHabits = habits.filter(h => HabitService.isHabitActiveToday(h));
@@ -886,138 +867,102 @@ export default function ProfileScreen() {
     return { completedToday, currentStreak, completionRate, totalCompletions, activeCount: habits.length };
   }, [habits]);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+  const handleProfilePicture = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Needed', 'Please allow gallery access.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+    if (!result.canceled) setProfileImage(result.assets[0].uri);
   };
 
-  const handleLogout = () => {
-    Alert.alert('Sign Out', 'Do you really want to sign out of your account?', [
-      { text: 'Stay', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: async () => {
-          try { await logout(); } catch (e) { Alert.alert("Error", "Logout failed"); }
-        } 
-      }
-    ]);
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return { text: 'Good Morning', icon: '🌅' };
-    if (hour < 17) return { text: 'Good Afternoon', icon: '☀️' };
-    return { text: 'Good Evening', icon: '🌙' };
-  };
+  if (loading && habits.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <ScrollView 
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366F1" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => setTimeout(() => setRefreshing(false), 800)} tintColor="#3B82F6" />}
       >
-        {/* --- Header Section --- */}
-        <LinearGradient colors={['#0F172A', '#1E293B']} style={styles.header}>
+        <LinearGradient colors={['#1E293B', '#0F172A']} style={styles.header}>
           <View style={styles.headerTop}>
-            <TouchableOpacity onPress={handleProfilePicture} activeOpacity={0.8}>
-              <View style={styles.glassAvatar}>
-                {profileImage ? (
-                  <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-                ) : (
-                  <User size={38} color="#FFF" strokeWidth={1.5} />
-                )}
+            <TouchableOpacity onPress={handleProfilePicture} activeOpacity={0.9}>
+              <View style={styles.avatarWrapper}>
+                <View style={styles.glassAvatar}>
+                  {profileImage ? (
+                    <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+                  ) : (
+                    <User size={40} color="#3B82F6" strokeWidth={1.5} />
+                  )}
+                </View>
                 <View style={styles.cameraBadge}>
                   <Camera size={12} color="#FFF" />
                 </View>
               </View>
             </TouchableOpacity>
             
-            <View style={styles.headerTextContainer}>
-              <Text style={styles.greetingText}>{getGreeting().text} {getGreeting().icon}</Text>
-              <Text style={styles.nameText}>{user?.displayName || user?.email?.split('@')[0] || 'User'}</Text>
+            <View style={styles.headerInfo}>
+              <Text style={styles.nameText}>{user?.displayName || 'Habit Achiever'}</Text>
+              <Text style={styles.emailText}>{user?.email || 'user@habit.app'}</Text>
             </View>
-            <TouchableOpacity style={styles.notifBtn}>
-              <Bell size={22} color="#94A3B8" />
-            </TouchableOpacity>
           </View>
 
-          {/* Quick Stats Banner */}
-          <View style={styles.quickStatsRow}>
-            <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatVal}>{liveStats.completedToday}</Text>
-              <Text style={styles.quickStatLabel}>Today</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatVal}>{liveStats.currentStreak}</Text>
-              <Text style={styles.quickStatLabel}>Streak</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.quickStatItem}>
-              <Text style={styles.quickStatVal}>{liveStats.activeCount}</Text>
-              <Text style={styles.quickStatLabel}>Habits</Text>
-            </View>
+          <View style={styles.quickStatsGrid}>
+            <QuickStat label="STREAK" value={liveStats.currentStreak} />
+            <QuickStat label="HABITS" value={liveStats.activeCount} />
+            <QuickStat label="TOTAL" value={liveStats.totalCompletions} />
           </View>
         </LinearGradient>
 
-        <View style={styles.contentBody}>
-          {/* --- Live Progress Card --- */}
-          <View style={styles.progressSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Performance Analytics</Text>
-              <BarChart3 size={18} color="#6366F1" />
+        <View style={styles.body}>
+          <View style={styles.analyticsCard}>
+            <View style={styles.cardHeader}>
+              <BarChart3 size={18} color="#3B82F6" />
+              <Text style={styles.cardTitle}>Performance Overview</Text>
             </View>
-            
-            <View style={styles.statsGrid}>
-              <View style={styles.statBox}>
-                <View style={[styles.iconCircle, { backgroundColor: '#EEF2FF' }]}>
-                  <Target size={20} color="#6366F1" />
-                </View>
-                <Text style={styles.statNumber}>{liveStats.completionRate}%</Text>
-                <Text style={styles.statDesc}>Daily Rate</Text>
-              </View>
-
-              <View style={styles.statBox}>
-                <View style={[styles.iconCircle, { backgroundColor: '#FFF7ED' }]}>
-                  <Flame size={20} color="#F59E0B" />
-                </View>
-                <Text style={styles.statNumber}>{liveStats.currentStreak}</Text>
-                <Text style={styles.statDesc}>Best Streak</Text>
-              </View>
-
-              <View style={styles.statBox}>
-                <View style={[styles.iconCircle, { backgroundColor: '#ECFDF5' }]}>
-                  <Zap size={20} color="#10B981" />
-                </View>
-                <Text style={styles.statNumber}>{liveStats.totalCompletions}</Text>
-                <Text style={styles.statDesc}>Total Hits</Text>
-              </View>
+            <View style={styles.analyticsGrid}>
+               <AnalyticsItem icon={Target} color="#3B82F6" label="Success" value={`${liveStats.completionRate}%`} />
+               <AnalyticsItem icon={Zap} color="#F59E0B" label="Energy" value="High" />
+               <AnalyticsItem icon={Heart} color="#EF4444" label="Health" value="Good" />
             </View>
           </View>
 
-          {/* --- Menu Card 1: Account --- */}
-          <Text style={styles.menuGroupLabel}>Management</Text>
-          <View style={styles.menuCard}>
-            <MenuOption icon={Settings} label="App Preferences" />
-            <MenuOption icon={Shield} label="Security & Privacy" />
-            <MenuOption icon={Award} label="My Achievements" isLast />
-          </View>
+          <MenuGroup label="PREFERENCES">
+            <MenuOption icon={Settings} label="App Settings" />
+            <MenuOption icon={Bell} label="Notifications" />
+            <MenuOption icon={Shield} label="Privacy & Security" isLast />
+          </MenuGroup>
 
-          {/* --- Menu Card 2: Support --- */}
-          <Text style={styles.menuGroupLabel}>Reach Out</Text>
-          <View style={styles.menuCard}>
+          <MenuGroup label="SUPPORT">
             <MenuOption icon={HelpCircle} label="Help Center" />
-            <MenuOption icon={Star} label="Rate Experience" isLast />
-          </View>
+            <MenuOption icon={Star} label="Rate Us" isLast />
+          </MenuGroup>
 
-          {/* --- Logout --- */}
-          <TouchableOpacity style={styles.logoutWrapper} onPress={handleLogout}>
+          {/* SIGN OUT BUTTON - Re-fixed */}
+          <TouchableOpacity 
+            style={styles.signOutBtn} 
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
             <LogOut size={20} color="#EF4444" />
-            <Text style={styles.logoutLabel}>Sign Out From Account</Text>
+            <Text style={styles.signOutLabel}>Secure Sign Out</Text>
           </TouchableOpacity>
 
-          <View style={styles.footerInfo}>
-            <Text style={styles.versionLabel}>Version 1.0.4 Premium</Text>
-            <Text style={styles.footerNote}>© 2026 Habit Tracker Studio</Text>
+          <View style={styles.footer}>
+            <Text style={styles.versionText}>v1.0.8 Premium Edition</Text>
+            <Text style={styles.copyrightText}>Build your best self, every day.</Text>
           </View>
         </View>
       </ScrollView>
@@ -1025,89 +970,119 @@ export default function ProfileScreen() {
   );
 }
 
+// --- Internal Components ---
+const QuickStat = ({ label, value }: any) => (
+  <View style={styles.quickStat}>
+    <Text style={styles.quickStatVal}>{value}</Text>
+    <Text style={styles.quickStatLabel}>{label}</Text>
+  </View>
+);
+
+const AnalyticsItem = ({ icon: Icon, color, label, value }: any) => (
+  <View style={styles.analyticsItem}>
+    <View style={[styles.iconCircle, { backgroundColor: `${color}15` }]}>
+      <Icon size={20} color={color} />
+    </View>
+    <Text style={styles.analyticsValue}>{value}</Text>
+    <Text style={styles.analyticsLabel}>{label}</Text>
+  </View>
+);
+
+const MenuGroup = ({ label, children }: any) => (
+  <View style={styles.menuGroup}>
+    <Text style={styles.groupLabel}>{label}</Text>
+    <View style={styles.menuCard}>{children}</View>
+  </View>
+);
+
 const MenuOption = ({ icon: Icon, label, isLast }: any) => (
   <TouchableOpacity style={[styles.menuItem, isLast && { borderBottomWidth: 0 }]}>
     <View style={styles.menuItemLeft}>
       <View style={styles.menuIconBox}>
-        <Icon size={18} color="#475569" strokeWidth={2} />
+        <Icon size={18} color="#94A3B8" />
       </View>
       <Text style={styles.menuItemText}>{label}</Text>
     </View>
-    <ChevronRight size={16} color="#CBD5E1" />
+    <ChevronRight size={16} color="#475569" />
   </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: '#0F172A' },
+  loadingContainer: { flex: 1, backgroundColor: '#0F172A', justifyContent: 'center', alignItems: 'center' },
   header: {
     paddingTop: Platform.OS === 'ios' ? 70 : 50,
-    paddingBottom: 40,
+    paddingBottom: 35,
     paddingHorizontal: 24,
-    borderBottomLeftRadius: 35,
-    borderBottomRightRadius: 35,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    borderWidth: 1,
+    borderColor: '#1E293B',
   },
   headerTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
+  avatarWrapper: { position: 'relative' },
   glassAvatar: {
-    width: 65,
-    height: 65,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    width: 75,
+    height: 75,
+    borderRadius: 24,
+    backgroundColor: '#1E293B',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#334155',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 22,
-  },
+  avatarImage: { width: '100%', height: '100%' },
   cameraBadge: {
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    backgroundColor: '#6366F1',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    bottom: -5,
+    right: -5,
+    backgroundColor: '#3B82F6',
+    width: 24,
+    height: 24,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#1E293B',
+    borderWidth: 2,
+    borderColor: '#0F172A',
   },
-  headerTextContainer: { flex: 1, marginLeft: 16 },
-  greetingText: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 13, fontWeight: '700', textTransform: 'uppercase' },
-  nameText: { color: '#FFF', fontSize: 24, fontWeight: '800' },
-  notifBtn: { width: 45, height: 45, borderRadius: 15, backgroundColor: 'rgba(255, 255, 255, 0.08)', justifyContent: 'center', alignItems: 'center' },
-  
-  quickStatsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10 },
-  quickStatItem: { alignItems: 'center' },
-  quickStatVal: { color: '#FFF', fontSize: 20, fontWeight: '800' },
-  quickStatLabel: { color: 'rgba(255, 255, 255, 0.5)', fontSize: 11, fontWeight: '600', marginTop: 2 },
-  statDivider: { width: 1, height: 25, backgroundColor: 'rgba(255, 255, 255, 0.1)', alignSelf: 'center' },
-
-  contentBody: { paddingHorizontal: 20, paddingTop: 30 },
-  progressSection: { backgroundColor: '#FFF', borderRadius: 28, padding: 20, shadowColor: '#000', shadowOpacity: 0.05, elevation: 2 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#0F172A' },
-  statsGrid: { flexDirection: 'row', justifyContent: 'space-between' },
-  statBox: { width: '31%', alignItems: 'center' },
-  iconCircle: { width: 46, height: 46, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-  statNumber: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  statDesc: { fontSize: 10, color: '#94A3B8', fontWeight: '700', marginTop: 2 },
-
-  menuGroupLabel: { fontSize: 12, fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 1, marginTop: 30, marginBottom: 12, marginLeft: 5 },
-  menuCard: { backgroundColor: '#FFF', borderRadius: 24, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.04, elevation: 2 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  menuIconBox: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#F1F5F9', justifyContent: 'center', alignItems: 'center' },
-  menuItemText: { fontSize: 15, fontWeight: '600', color: '#1E293B' },
-
-  logoutWrapper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 40, backgroundColor: '#FFF', paddingVertical: 18, borderRadius: 24, borderWidth: 1, borderColor: '#FEE2E2' },
-  logoutLabel: { color: '#EF4444', fontSize: 16, fontWeight: '700' },
-
-  footerInfo: { alignItems: 'center', marginTop: 40, paddingBottom: 50 },
-  versionLabel: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
-  footerNote: { color: '#CBD5E1', fontSize: 11, marginTop: 4 }
+  headerInfo: { marginLeft: 20 },
+  nameText: { color: '#F8FAFC', fontSize: 24, fontWeight: '800' },
+  emailText: { color: '#64748B', fontSize: 14, marginTop: 2 },
+  quickStatsGrid: { flexDirection: 'row', justifyContent: 'space-between' },
+  quickStat: { alignItems: 'center', flex: 1 },
+  quickStatVal: { color: '#F8FAFC', fontSize: 20, fontWeight: '800' },
+  quickStatLabel: { color: '#475569', fontSize: 10, fontWeight: '700', marginTop: 4, letterSpacing: 1 },
+  body: { paddingHorizontal: 20, paddingTop: 30 },
+  analyticsCard: { backgroundColor: '#1E293B', borderRadius: 30, padding: 24, borderWidth: 1, borderColor: '#334155' },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
+  cardTitle: { color: '#F8FAFC', fontSize: 16, fontWeight: '700' },
+  analyticsGrid: { flexDirection: 'row', justifyContent: 'space-between' },
+  analyticsItem: { alignItems: 'center', width: '30%' },
+  iconCircle: { width: 45, height: 45, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+  analyticsValue: { color: '#F8FAFC', fontSize: 18, fontWeight: '800' },
+  analyticsLabel: { color: '#64748B', fontSize: 10, fontWeight: '600', marginTop: 2 },
+  menuGroup: { marginTop: 30 },
+  groupLabel: { color: '#475569', fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginBottom: 12, marginLeft: 10 },
+  menuCard: { backgroundColor: '#1E293B', borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: '#334155' },
+  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 18, borderBottomWidth: 1, borderBottomColor: '#0F172A' },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  menuIconBox: { width: 38, height: 38, borderRadius: 12, backgroundColor: '#0F172A', justifyContent: 'center', alignItems: 'center' },
+  menuItemText: { fontSize: 15, fontWeight: '600', color: '#CBD5E1' },
+  signOutBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 12, 
+    marginTop: 40, 
+    backgroundColor: '#1E293B', 
+    paddingVertical: 18, 
+    borderRadius: 24, 
+    borderWidth: 1, 
+    borderColor: '#EF444433' 
+  },
+  signOutLabel: { color: '#EF4444', fontSize: 15, fontWeight: '700' },
+  footer: { alignItems: 'center', marginTop: 40, paddingBottom: 60 },
+  versionText: { color: '#475569', fontSize: 12, fontWeight: '700' },
+  copyrightText: { color: '#334155', fontSize: 10, marginTop: 4 }
 });
