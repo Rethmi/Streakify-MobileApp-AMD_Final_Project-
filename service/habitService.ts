@@ -141,40 +141,64 @@ export class HabitService {
     return streak;
   }
 
-  static getWeeklyStats(habits: Habit[]): { average: number; days: number[] } {
-    const days: number[] = [];
-    const today = new Date();
+  // static getWeeklyStats(habits: Habit[]): { average: number; days: number[] } {
+  //   const days: number[] = [];
+  //   const today = new Date();
     
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split('T')[0];
-      const dayOfWeek = date.getDay();
+  //   for (let i = 0; i < 7; i++) {
+  //     const date = new Date(today);
+  //     date.setDate(date.getDate() - i);
+  //     const dateString = date.toISOString().split('T')[0];
+  //     const dayOfWeek = date.getDay();
       
-      const activeHabits = habits.filter(habit => {
-        switch (habit.frequency) {
-          case 'daily':
-            return true;
-          case 'weekdays':
-            return dayOfWeek >= 1 && dayOfWeek <= 5;
-          case 'weekends':
-            return dayOfWeek === 0 || dayOfWeek === 6;
-          case 'weekly':
-            return true;
-          default:
-            return true;
-        }
-      });
+  //     const activeHabits = habits.filter(habit => {
+  //       switch (habit.frequency) {
+  //         case 'daily':
+  //           return true;
+  //         case 'weekdays':
+  //           return dayOfWeek >= 1 && dayOfWeek <= 5;
+  //         case 'weekends':
+  //           return dayOfWeek === 0 || dayOfWeek === 6;
+  //         case 'weekly':
+  //           return true;
+  //         default:
+  //           return true;
+  //       }
+  //     });
       
-      const completedHabits = activeHabits.filter(habit => habit.completions[dateString]);
-      const completionRate = activeHabits.length > 0 ? Math.round((completedHabits.length / activeHabits.length) * 100) : 0;
-      days.unshift(completionRate);
-    }
+  //     const completedHabits = activeHabits.filter(habit => habit.completions[dateString]);
+  //     const completionRate = activeHabits.length > 0 ? Math.round((completedHabits.length / activeHabits.length) * 100) : 0;
+  //     days.unshift(completionRate);
+  //   }
     
-    const average = days.length > 0 ? Math.round(days.reduce((sum, day) => sum + day, 0) / days.length) : 0;
+  //   const average = days.length > 0 ? Math.round(days.reduce((sum, day) => sum + day, 0) / days.length) : 0;
     
-    return { average, days };
-  }
+  //   return { average, days };
+  // }
+  static getWeeklyStats(habits: Habit[]) {
+  const last7Days = [...Array(7)].map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i)); // අද සිට ආපස්සට දවස් 7ක්
+    return d.toISOString().split('T')[0];
+  });
+
+  const dailyBreakdown = last7Days.map(date => {
+    const activeHabits = habits.filter(h => this.isHabitActiveToday(h)); // එම දවසේ තිබූ habits
+    if (activeHabits.length === 0) return 0;
+    
+    const completedCount = activeHabits.filter(h => h.completions && h.completions[date]).length;
+    return Math.round((completedCount / activeHabits.length) * 100);
+  });
+
+  const average = dailyBreakdown.length > 0 
+    ? Math.round(dailyBreakdown.reduce((a, b) => a + b, 0) / dailyBreakdown.length) 
+    : 0;
+
+  return {
+    average,
+    dailyBreakdown // [0, 20, 50, 40, 100, 70, 85] වගේ array එකක් return වේ
+  };
+}
 
   static getMonthlyStats(habits: Habit[]): { average: number; weeks: number[] } {
     const weeks: number[] = [];

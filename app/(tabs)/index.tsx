@@ -336,35 +336,287 @@
 
 
 
+// import React, { useState, useEffect } from 'react';
+// import {
+//   View,
+//   Text,
+//   StyleSheet,
+//   FlatList,
+//   TouchableOpacity,
+//   Alert,
+//   RefreshControl,
+//   ScrollView,
+//   StatusBar,
+//   ActivityIndicator,
+// } from 'react-native';
+// import { useAuth } from '@/context/AuthContext';
+// import { HabitService } from '@/service/habitService';
+// import HabitCard from '@/components/HabitCard';
+// import StatsCard from '@/components/StatsCard';
+// import { Habit } from '@/types/habit';
+// import { TrendingUp, Target, Flame, Plus, Calendar } from 'lucide-react-native';
+// import { router } from 'expo-router';
+
+// export default function HomeScreen() {
+//   const { user } = useAuth();
+//   const [habits, setHabits] = useState<Habit[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [refreshing, setRefreshing] = useState(false);
+//   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+
+//   // Stats calculation logic
+//   const today = HabitService.getTodayString();
+//   const todaysHabits = habits.filter(habit => HabitService.isHabitActiveToday(habit));
+//   const completedCount = todaysHabits.filter(habit => habit.completions[today]).length;
+//   const completionRate = todaysHabits.length > 0 ? Math.round((completedCount / todaysHabits.length) * 100) : 0;
+//   const streak = HabitService.calculateStreak(habits);
+//   const weeklyStats = HabitService.getWeeklyStats(habits);
+
+//   const stats = [
+//     {
+//       title: "Today's Goal",
+//       value: `${completedCount}/${todaysHabits.length}`,
+//       percentage: completionRate,
+//       icon: Target,
+//       color: '#3B82F6',
+//     },
+//     {
+//       title: 'Current Streak',
+//       value: `${streak} Days`,
+//       percentage: Math.min(streak * 10, 100),
+//       icon: Flame,
+//       color: '#EF4444',
+//     },
+//     {
+//       title: 'Weekly Avg',
+//       value: `${weeklyStats.average}%`,
+//       percentage: weeklyStats.average,
+//       icon: TrendingUp,
+//       color: '#10B981',
+//     },
+//   ];
+
+//   useEffect(() => {
+//     if (!user) return;
+//     const unsubscribe = HabitService.subscribeUserHabits(user.uid, (userHabits) => {
+//       setHabits(userHabits);
+//       setLoading(false);
+//     });
+//     return () => unsubscribe();
+//   }, [user]);
+
+//   const handleToggleHabit = async (habitId: string, completed: boolean) => {
+//     try {
+//       await HabitService.toggleHabitCompletion(habitId, today, completed);
+//     } catch (error) {
+//       Alert.alert('Update Failed', 'Could not sync with cloud.');
+//     }
+//   };
+
+//   const handleDeleteHabit = async (habitId: string) => {
+//     Alert.alert('Delete Habit', 'This action cannot be undone.', [
+//       { text: 'Keep It', style: 'cancel' },
+//       { text: 'Delete', style: 'destructive', onPress: () => HabitService.deleteHabit(habitId) },
+//     ]);
+//   };
+
+//   const onRefresh = async () => {
+//     setRefreshing(true);
+//     if (user) await HabitService.getUserHabits(user.uid);
+//     setRefreshing(false);
+//   };
+
+//   const getGreeting = () => {
+//     const hour = new Date().getHours();
+//     if (hour < 12) return 'Good Morning';
+//     if (hour < 17) return 'Good Afternoon';
+//     return 'Good Evening';
+//   };
+
+//   if (loading) {
+//     return (
+//       <View style={styles.loadingContainer}>
+//         <ActivityIndicator size="large" color="#3B82F6" />
+//         <Text style={styles.loadingText}>Syncing your routine...</Text>
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <View style={styles.container}>
+//       <StatusBar barStyle="light-content" />
+      
+//       <ScrollView
+//         showsVerticalScrollIndicator={false}
+//         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3B82F6" />}
+//       >
+//         {/* Header Section */}
+//         <View style={styles.header}>
+//           <View>
+//             <Text style={styles.greeting}>{getGreeting()}, {user?.displayName?.split(' ')[0] || 'Achiever'}</Text>
+//             <Text style={styles.date}>
+//               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+//             </Text>
+//           </View>
+//           <TouchableOpacity 
+//             style={styles.addButton} 
+//             onPress={() => router.push('/(tabs)/add')}
+//             activeOpacity={0.8}
+//           >
+//             <Plus size={24} color="#FFFFFF" />
+//           </TouchableOpacity>
+//         </View>
+
+//         {/* Stats Section */}
+//         <View style={styles.statsSection}>
+//           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statsScroll}>
+//             {stats.map((stat, index) => (
+//               <StatsCard key={index} {...stat} />
+//             ))}
+//           </ScrollView>
+//         </View>
+
+//         {/* Today's Habits */}
+//         <View style={styles.habitsSection}>
+//           <View style={styles.sectionHeader}>
+//             <Text style={styles.sectionTitle}>Today's Focus</Text>
+//             <View style={styles.badge}>
+//               <Text style={styles.badgeText}>{completedCount}/{todaysHabits.length}</Text>
+//             </View>
+//           </View>
+
+//           {todaysHabits.length === 0 ? (
+//             <View style={styles.emptyContainer}>
+//               <Calendar size={48} color="#334155" />
+//               <Text style={styles.emptyTitle}>Clear Schedule</Text>
+//               <Text style={styles.emptySubtitle}>No habits planned for today. Ready to add a new one?</Text>
+//               <TouchableOpacity style={styles.emptyButton} onPress={() => router.push('/(tabs)/add')}>
+//                 <Text style={styles.emptyButtonText}>Get Started</Text>
+//               </TouchableOpacity>
+//             </View>
+//           ) : (
+//             <View style={styles.listContainer}>
+//               {todaysHabits.map((item) => (
+//                 <HabitCard
+//                   key={item.id}
+//                   habit={item}
+//                   onToggle={(completed) => handleToggleHabit(item.id, completed)}
+//                   onDelete={() => handleDeleteHabit(item.id)}
+//                   onEdit={() => router.push({ pathname: '/(tabs)/add', params: { id: item.id } })}
+//                   isCompleted={item.completions[today] || false}
+//                 />
+//               ))}
+//             </View>
+//           )}
+//         </View>
+
+//         {/* Other Habits (Secondary Focus) */}
+//         {habits.length > todaysHabits.length && (
+//           <View style={[styles.habitsSection, { marginTop: 10 }]}>
+//             <Text style={styles.sectionTitleSecondary}>Other Routines</Text>
+//             <View style={styles.listContainer}>
+//               {habits
+//                 .filter(h => !HabitService.isHabitActiveToday(h))
+//                 .map((item) => (
+//                   <HabitCard
+//                     key={item.id}
+//                     habit={item}
+//                     onToggle={() => {}} 
+//                     onDelete={() => handleDeleteHabit(item.id)}
+//                     onEdit={() => {}}
+//                     isCompleted={false}
+//                     showFrequency={true}
+//                   />
+//                 ))}
+//             </View>
+//           </View>
+//         )}
+//       </ScrollView>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: { flex: 1, backgroundColor: '#0F172A' }, // Matches Add Habit Screen
+//   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' },
+//   loadingText: { fontSize: 14, color: '#94A3B8', marginTop: 12 },
+//   header: {
+//     flexDirection: 'row',
+//     justifyContent: 'space-between',
+//     alignItems: 'center',
+//     paddingHorizontal: 24,
+//     paddingTop: 60,
+//     paddingBottom: 20,
+//   },
+//   greeting: { fontSize: 24, fontWeight: '800', color: '#F8FAFC' },
+//   date: { fontSize: 14, color: '#64748B', marginTop: 2 },
+//   addButton: {
+//     width: 48, height: 48, borderRadius: 16, backgroundColor: '#3B82F6',
+//     alignItems: 'center', justifyContent: 'center', elevation: 4,
+//   },
+//   statsSection: { marginBottom: 24 },
+//   statsScroll: { paddingLeft: 24, paddingRight: 8, gap: 12 },
+//   habitsSection: { paddingHorizontal: 24, paddingBottom: 20 },
+//   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
+//   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#F8FAFC' },
+//   sectionTitleSecondary: { fontSize: 16, fontWeight: '700', color: '#64748B', marginBottom: 16 },
+//   badge: { backgroundColor: '#1E293B', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: '#334155' },
+//   badgeText: { color: '#3B82F6', fontSize: 12, fontWeight: '800' },
+//   listContainer: { gap: 12 },
+//   emptyContainer: {
+//     alignItems: 'center', justifyContent: 'center', padding: 40,
+//     backgroundColor: '#1E293B', borderRadius: 24, borderWidth: 1, borderColor: '#334155',
+//   },
+//   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#F8FAFC', marginTop: 16 },
+//   emptySubtitle: { fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8, lineHeight: 20 },
+//   emptyButton: { marginTop: 20, backgroundColor: '#3B82F615', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#3B82F6' },
+//   emptyButtonText: { color: '#3B82F6', fontWeight: '700' },
+// });
+
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Alert,
   RefreshControl,
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  Modal,
+  Dimensions,
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { HabitService } from '@/service/habitService';
 import HabitCard from '@/components/HabitCard';
 import StatsCard from '@/components/StatsCard';
 import { Habit } from '@/types/habit';
-import { TrendingUp, Target, Flame, Plus, Calendar } from 'lucide-react-native';
+import { 
+  TrendingUp, 
+  Target, 
+  Flame, 
+  Plus, 
+  Calendar, 
+  BarChart2, 
+  X,
+  Award
+} from 'lucide-react-native';
 import { router } from 'expo-router';
+import { LineChart } from "react-native-chart-kit";
+
+const screenWidth = Dimensions.get("window").width;
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
-  // Stats calculation logic
+  // Basic Logic
   const today = HabitService.getTodayString();
   const todaysHabits = habits.filter(habit => HabitService.isHabitActiveToday(habit));
   const completedCount = todaysHabits.filter(habit => habit.completions[today]).length;
@@ -433,6 +685,19 @@ export default function HomeScreen() {
     return 'Good Evening';
   };
 
+  // Chart Configuration  
+const chartData = {
+  labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  datasets: [{
+    // මෙතනදී ?? operator එක පාවිච්චි කරලා null/undefined නම් [0,0...] දෙන්න
+    data: (weeklyStats?.dailyBreakdown && weeklyStats.dailyBreakdown.length === 7) 
+          ? weeklyStats.dailyBreakdown 
+          : [0, 0, 0, 0, 0, 0, 0], 
+    color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+    strokeWidth: 3
+  }]
+};
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -453,21 +718,31 @@ export default function HomeScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{getGreeting()}, {user?.displayName?.split(' ')[0] || 'Achiever'}</Text>
+            <Text style={styles.greeting}>{getGreeting()}, {user?.displayName?.split(' ')[0] || 'Rethmi'}</Text>
             <Text style={styles.date}>
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.addButton} 
-            onPress={() => router.push('/(tabs)/add')}
-            activeOpacity={0.8}
-          >
-            <Plus size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity 
+              style={styles.analyticsButton} 
+              onPress={() => setShowAnalytics(true)}
+              activeOpacity={0.7}
+            >
+              <BarChart2 size={22} color="#3B82F6" />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.addButton} 
+              onPress={() => router.push('/(tabs)/add')}
+              activeOpacity={0.8}
+            >
+              <Plus size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Stats Section */}
+        {/* Stats Cards */}
         <View style={styles.statsSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statsScroll}>
             {stats.map((stat, index) => (
@@ -509,35 +784,73 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-
-        {/* Other Habits (Secondary Focus) */}
-        {habits.length > todaysHabits.length && (
-          <View style={[styles.habitsSection, { marginTop: 10 }]}>
-            <Text style={styles.sectionTitleSecondary}>Other Routines</Text>
-            <View style={styles.listContainer}>
-              {habits
-                .filter(h => !HabitService.isHabitActiveToday(h))
-                .map((item) => (
-                  <HabitCard
-                    key={item.id}
-                    habit={item}
-                    onToggle={() => {}} 
-                    onDelete={() => handleDeleteHabit(item.id)}
-                    onEdit={() => {}}
-                    isCompleted={false}
-                    showFrequency={true}
-                  />
-                ))}
-            </View>
-          </View>
-        )}
       </ScrollView>
+
+      {/* Analytics Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showAnalytics}
+        onRequestClose={() => setShowAnalytics(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Performance</Text>
+                <Text style={styles.modalSubtitle}>Your weekly activity</Text>
+              </View>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setShowAnalytics(false)}>
+                <X size={20} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+
+            <LineChart
+              data={chartData}
+              width={screenWidth * 0.85}
+              height={200}
+              chartConfig={{
+                backgroundColor: "#1E293B",
+                backgroundGradientFrom: "#1E293B",
+                backgroundGradientTo: "#1E293B",
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(148, 163, 184, ${opacity})`,
+                propsForDots: { r: "5", strokeWidth: "2", stroke: "#3B82F6" },
+                propsForBackgroundLines: { stroke: "#334155" }
+              }}
+              bezier
+              style={styles.chartStyle}
+            />
+
+            <View style={styles.analysisRow}>
+              <View style={styles.analysisBox}>
+                <Award size={20} color="#10B981" style={{marginBottom: 4}} />
+                <Text style={styles.analysisLabel}>Success Rate</Text>
+                <Text style={styles.analysisValue}>{weeklyStats.average}%</Text>
+              </View>
+              <View style={styles.analysisBox}>
+                <Flame size={20} color="#EF4444" style={{marginBottom: 4}} />
+                <Text style={styles.analysisLabel}>Best Streak</Text>
+                <Text style={styles.analysisValue}>{streak} Days</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.doneButton} 
+              onPress={() => setShowAnalytics(false)}
+            >
+              <Text style={styles.doneButtonText}>Close Dashboard</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' }, // Matches Add Habit Screen
+  container: { flex: 1, backgroundColor: '#0F172A' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' },
   loadingText: { fontSize: 14, color: '#94A3B8', marginTop: 12 },
   header: {
@@ -548,18 +861,22 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
   },
+  headerButtons: { flexDirection: 'row', gap: 12 },
   greeting: { fontSize: 24, fontWeight: '800', color: '#F8FAFC' },
   date: { fontSize: 14, color: '#64748B', marginTop: 2 },
   addButton: {
     width: 48, height: 48, borderRadius: 16, backgroundColor: '#3B82F6',
     alignItems: 'center', justifyContent: 'center', elevation: 4,
   },
+  analyticsButton: {
+    width: 48, height: 48, borderRadius: 16, backgroundColor: '#1E293B',
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#334155',
+  },
   statsSection: { marginBottom: 24 },
   statsScroll: { paddingLeft: 24, paddingRight: 8, gap: 12 },
   habitsSection: { paddingHorizontal: 24, paddingBottom: 20 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: '#F8FAFC' },
-  sectionTitleSecondary: { fontSize: 16, fontWeight: '700', color: '#64748B', marginBottom: 16 },
   badge: { backgroundColor: '#1E293B', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, borderWidth: 1, borderColor: '#334155' },
   badgeText: { color: '#3B82F6', fontSize: 12, fontWeight: '800' },
   listContainer: { gap: 12 },
@@ -571,7 +888,63 @@ const styles = StyleSheet.create({
   emptySubtitle: { fontSize: 14, color: '#94A3B8', textAlign: 'center', marginTop: 8, lineHeight: 20 },
   emptyButton: { marginTop: 20, backgroundColor: '#3B82F615', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: '#3B82F6' },
   emptyButtonText: { color: '#3B82F6', fontWeight: '700' },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(2, 6, 23, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '92%',
+    backgroundColor: '#1E293B',
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+    elevation: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  modalTitle: { fontSize: 22, fontWeight: '800', color: '#F8FAFC' },
+  modalSubtitle: { fontSize: 14, color: '#94A3B8', marginTop: 2 },
+  closeButton: {
+    backgroundColor: '#334155',
+    padding: 8,
+    borderRadius: 12,
+  },
+  chartStyle: {
+    marginVertical: 8,
+    borderRadius: 16,
+    paddingRight: 40,
+  },
+  analysisRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  analysisBox: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    padding: 16,
+    borderRadius: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  analysisLabel: { color: '#64748B', fontSize: 11, fontWeight: '600', textTransform: 'uppercase', marginBottom: 4 },
+  analysisValue: { color: '#F8FAFC', fontSize: 18, fontWeight: '700' },
+  doneButton: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  doneButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
 });
-
-
-
