@@ -22,6 +22,8 @@ import {
   Coffee, Code, Camera, Brush, Wallet, CheckCircle2,
   Users, Cloud, Sun
 } from 'lucide-react-native';
+import { HabitFrequency } from '@/types/habit';
+
 
 const HABIT_ICONS = [
  // Health & Fitness
@@ -56,10 +58,11 @@ const TIME_SLOTS = [
   { label: 'Custom', value: 'custom' },
 ];
 
-const FREQUENCY_OPTIONS = [
+const FREQUENCY_OPTIONS: { key: HabitFrequency; label: string }[] = [
   { key: 'daily', label: 'Every Day' },
   { key: 'weekdays', label: 'Mon - Fri' },
   { key: 'weekends', label: 'Sat - Sun' },
+  { key: 'weekly', label: 'Weekly' }, // මෙතන 'weekly' එකතු කිරීමට අමතක කරන්න එපා
 ];
 
 export default function AddHabitScreen() {
@@ -69,7 +72,7 @@ export default function AddHabitScreen() {
   const [selectedTime, setSelectedTime] = useState('06:00');
   const [customTime, setCustomTime] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('reading');
-  const [frequency, setFrequency] = useState('daily');
+  const [frequency, setFrequency] = useState<HabitFrequency>('daily');
   const [loading, setLoading] = useState(false);
 
   const handleAddHabit = async () => {

@@ -11,6 +11,7 @@ import {
   Dumbbell, Timer, Droplets, Apple, Wind, Moon, Heart, Sun,
   Briefcase, GraduationCap, BookOpen, Code, Music, Brush, Wallet, Users
 } from 'lucide-react-native';
+import { HabitFrequency } from '@/types/habit';
 
 const HABIT_ICONS = [
   { key: 'exercise', icon: Dumbbell, label: 'Fitness', color: '#FF4757' },
@@ -30,10 +31,11 @@ const TIME_SLOTS = [
   { label: 'Custom', value: 'custom' },
 ];
 
-const FREQUENCY_OPTIONS = [
+const FREQUENCY_OPTIONS: { key: HabitFrequency; label: string }[] = [
   { key: 'daily', label: 'Every Day' },
   { key: 'weekdays', label: 'Mon - Fri' },
   { key: 'weekends', label: 'Sat - Sun' },
+  { key: 'weekly', label: 'Weekly' },
 ];
 
 export default function EditHabitScreen() {
@@ -43,7 +45,8 @@ export default function EditHabitScreen() {
   const [selectedTime, setSelectedTime] = useState('06:00');
   const [customTime, setCustomTime] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('reading');
-  const [frequency, setFrequency] = useState('daily');
+//   const [frequency, setFrequency] = useState('daily');
+const [frequency, setFrequency] = useState<HabitFrequency>('daily');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -56,7 +59,8 @@ export default function EditHabitScreen() {
           setTitle(habit.title);
           setDescription(habit.description || '');
           setSelectedIcon(habit.icon);
-          setFrequency(habit.frequency);
+        //   setFrequency(habit.frequency);
+        setFrequency(habit.frequency as HabitFrequency);
           
           const isPresetTime = TIME_SLOTS.find(s => s.value === habit.time);
           if (isPresetTime) {
