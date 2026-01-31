@@ -55,14 +55,26 @@ export class HabitService {
     return null;
   }
 
-  static async updateHabit(habitId: string, updates: Partial<HabitInput>): Promise<void> {
+  // static async updateHabit(habitId: string, updates: Partial<HabitInput>): Promise<void> {
+  //   const habitRef = doc(db, 'habits', habitId);
+  //   await updateDoc(habitRef, {
+  //     ...updates,
+  //     updatedAt: new Date()
+  //   });
+  // }
+  // service/habitService.ts ඇතුළත
+static async updateHabit(habitId: string, updates: Partial<Habit>): Promise<void> {
+  try {
     const habitRef = doc(db, 'habits', habitId);
     await updateDoc(habitRef, {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: new Date() // track කිරීමට update කළ දිනය එකතු කරන්න
     });
+  } catch (error) {
+    console.error("Error updating habit:", error);
+    throw error;
   }
-
+}
   static async deleteHabit(habitId: string): Promise<void> {
     const habitRef = doc(db, 'habits', habitId);
     await deleteDoc(habitRef);

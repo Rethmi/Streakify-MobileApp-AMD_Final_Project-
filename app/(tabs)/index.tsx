@@ -772,14 +772,26 @@ const chartData = {
           ) : (
             <View style={styles.listContainer}>
               {todaysHabits.map((item) => (
+                // <HabitCard
+                //   key={item.id}
+                //   habit={item}
+                //   onToggle={(completed) => handleToggleHabit(item.id, completed)}
+                //   onDelete={() => handleDeleteHabit(item.id)}
+                //  onEdit={() => router.push(`/edit-habit/${item.id}`)} // මෙන්න මේ line එක හරියට තියෙන්න ඕනේ
+                //   isCompleted={item.completions[today] || false}
+                // />
                 <HabitCard
-                  key={item.id}
-                  habit={item}
-                  onToggle={(completed) => handleToggleHabit(item.id, completed)}
-                  onDelete={() => handleDeleteHabit(item.id)}
-                  onEdit={() => router.push({ pathname: '/(tabs)/add', params: { id: item.id } })}
-                  isCompleted={item.completions[today] || false}
-                />
+  key={item.id}
+  habit={item}
+  onToggle={(completed) => handleToggleHabit(item.id, completed)}
+  onDelete={() => handleDeleteHabit(item.id)}
+  // මෙන්න මෙතන path එක සහ query parameter එක හරියටම දෙන්න
+  onEdit={() => router.push({
+    pathname: '/edit-habit',
+    params: { id: item.id }
+  })} 
+  isCompleted={item.completions[today] || false}
+/>
               ))}
             </View>
           )}
