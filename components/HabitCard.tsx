@@ -386,23 +386,59 @@ export default function HabitCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1E293B', // Darker slate background
-    borderRadius: 20,
-    marginBottom: 12,
+    backgroundColor: '#1E293B', 
+    borderRadius: 24, // තවත් වටකුරු කළා
+    marginBottom: 16,
     padding: 16,
+    // Border එක තවත් සියුම් කළා
     borderWidth: 1,
-    borderColor: '#334155', // Subtle border
+    borderColor: 'rgba(255, 255, 255, 0.05)', 
+    // Shadow එක තවත් soft කළා
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5,
   },
   completedContainer: {
-    opacity: 0.6,
-    backgroundColor: '#0F172A', // Even darker when done
-    borderColor: '#1E293B',
+    backgroundColor: 'rgba(15, 23, 42, 0.5)', // Transparent ගතියක් දුන්නා
+    borderColor: 'transparent',
   },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 20,
+    backgroundColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    // Icon එකටත් පොඩි shadow එකක්
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  iconContainerCompleted: {
+    backgroundColor: '#064E3B', 
+  },
+  title: {
+    fontSize: 18, // ටිකක් ලොකු කළා
+    fontWeight: '800', // Bold ගතිය වැඩි කළා
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  frequencyChip: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)', // Subtle blue tint
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  frequency: {
+    fontSize: 11,
+    color: '#60A5FA',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  }
+,
   innerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -418,31 +454,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#334155',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  iconContainerCompleted: {
-    backgroundColor: '#064E3B', // Dark green tint
-    opacity: 0.8,
-  },
+   
   emoji: {
     fontSize: 22,
   },
   textContainer: {
     flex: 1,
   },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#F8FAFC', // Near white
-    letterSpacing: 0.3,
-  },
+  
   completedTitle: {
     textDecorationLine: 'line-through',
     color: '#64748B',
@@ -472,20 +491,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontWeight: '600',
   },
-  frequencyChip: {
-    backgroundColor: '#33415560',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  frequency: {
-    fontSize: 10,
-    color: '#3B82F6',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
+   
   optionsButton: {
     padding: 4,
     marginRight: 4,
