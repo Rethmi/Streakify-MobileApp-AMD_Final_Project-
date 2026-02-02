@@ -56,37 +56,37 @@ Streakify is a modern habit-tracking mobile application developed as part of the
 
   🔐 Login Page
 
-![Login Page](assets/screenshot/login.png)
+<img src="assets/screenshot/login.png" width="300" />
 
 
 
   🏠 Home Page
 
-![Home Page](assets/screenshot/home.png)
+<img src="assets/screenshot/home.png" width="300" />
 
 
 
   📊 performance chart Page
 
-![performance chart](assets/screenshot/chart.png)
+<img src="assets/screenshot/chart.png" width="300" />
 
 
 
   ➕ Add Habit Page
 
-![Add Habit](assets/screenshot/addhabit.png)
+<img src="assets/screenshot/addhabit.png" width="300" />
 
 
 
   👤 Profile Page
 
-![Profile](assets/screenshot/profile.png)
+<img src="assets/screenshot/profile.png" width="300" />
 
 
 
   🌞 LightMode Profile Page
 
-![LightMode Profile](assets/screenshot/lightmode.png)
+<img src="assets/screenshot/lightmode.png" width="300" />
 
 
 
