@@ -50,7 +50,7 @@ Streakify is a modern habit-tracking mobile application developed as part of the
 
   📝 Register Page
 
-![Register Page](<img src="assets/screenshot/register.png" width="300" />)
+<img src="assets/screenshot/register.png" width="300" />
 
 
 
